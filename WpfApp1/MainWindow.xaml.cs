@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using RingCentral;
 
 namespace WpfApp1
 {
@@ -25,9 +26,21 @@ namespace WpfApp1
             InitializeComponent();
         }
 
-        private void button_Click(object sender, RoutedEventArgs e)
+        private async void button_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Hello");
+            var rc = new RestClient("", "", "https://platform.ringcentral.com");
+            await rc.Authorize("", "", "");
+            var request = new PerformanceCallsTimelineRequest { 
+                grouping = new TimelinePerformanceCallsGrouping { groupBy = "Users"},
+                timeSettings = new PerformanceCallsTimeSettings { timeRange = new PerformanceCallsTimeRange { 
+                    timeFrom = "2022-02-21T00:00.000Z"
+                } },
+                responseOptions = new TimelineResponseDataOptions { 
+                    timers = new TimelineTimersResponseOptions { allCallsDuration = true}
+                }
+            };
+            var response = await rc.Analytics().Phone().Performance().V1().Accounts("~").Calls().Timeline().Post(request);
+            MessageBox.Show(response.data.Length.ToString());
         }
     }
 }
